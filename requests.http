@@ -1,0 +1,79 @@
+@baseUrl = http://localhost:3000
+
+### GET /announcements — без параметрів
+GET {{baseUrl}}/announcements
+
+###
+
+### GET /announcements — з параметром search
+GET {{baseUrl}}/announcements?search=ноутбук
+
+###
+
+### GET /announcements — з параметрами sort та page
+GET {{baseUrl}}/announcements?sort=oldest&page=1
+
+###
+
+### GET /announcements/:id — існуючий id
+GET {{baseUrl}}/announcements/1
+
+###
+
+### GET /announcements/:id — неіснуючий id
+GET {{baseUrl}}/announcements/99999
+
+###
+
+### POST /announcements — валідні дані
+POST {{baseUrl}}/announcements
+Content-Type: application/json
+
+{
+  "title": "Продам ноутбук Dell XPS",
+  "description": "Відмінний стан, 16GB RAM, SSD 512GB",
+  "price": 25000,
+  "category": "sale",
+  "contactInfo": "0991234567"
+}
+
+###
+
+### POST /announcements — невалідні дані (показує роботу валідації)
+POST {{baseUrl}}/announcements
+Content-Type: application/json
+
+{
+  "title": "ab",
+  "price": -100
+}
+
+###
+
+### PATCH /announcements/:id — часткове оновлення
+PATCH {{baseUrl}}/announcements/1
+Content-Type: application/json
+
+{
+  "price": 22000
+}
+
+###
+
+### PATCH /announcements/:id — неіснуючий id
+PATCH {{baseUrl}}/announcements/99999
+Content-Type: application/json
+
+{
+  "price": 100
+}
+
+###
+
+### DELETE /announcements/:id
+DELETE {{baseUrl}}/announcements/1
+
+###
+
+### DELETE /announcements/:id — неіснуючий id
+DELETE {{baseUrl}}/announcements/99999
