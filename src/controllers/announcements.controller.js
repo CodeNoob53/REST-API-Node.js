@@ -8,7 +8,7 @@ export const getAnnouncements = async (req, res) => {
 
   const where = {}
   if (search) {
-    where.title = { contains: search, mode: 'insensitive' }
+    where.title = { contains: search }
   }
 
   const orderBy = sort === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' }
