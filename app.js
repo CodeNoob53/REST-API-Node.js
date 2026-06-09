@@ -2,6 +2,7 @@ import express from 'express'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import { errors as celebrateErrors } from 'celebrate'
+import announcementsRouter from './src/routes/announcements.routes.js'
 
 const app = express()
 
@@ -20,7 +21,7 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: [],
+  apis: ['./src/routes/*.js'],
 }
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions)
@@ -29,10 +30,9 @@ app.use(express.json())
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
-app.use(celebrateErrors())
+app.use('/announcements', announcementsRouter)
 
-// Our routes would go here, for example:
-// app.use('/api/announcements', announcementsRouter)
+app.use(celebrateErrors())
 
 // 404 Not Found handler - must be after all routes
 app.use((req, res) => {
