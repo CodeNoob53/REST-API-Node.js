@@ -125,6 +125,22 @@ const tags = await prisma.tag.findMany()
 | `npm run prisma:migrate` | Створення та застосування міграцій бази даних |
 | `npm run prisma:generate` | Генерація Prisma Client |
 
+## Postman collection
+
+У корені проєкту є файл `postman_collection.json` з готовою колекцією запитів для ручної перевірки REST API.
+
+Колекція містить запити для:
+
+- `GET /announcements`
+- `GET /announcements?search=...`
+- `GET /announcements?sort=oldest&page=1`
+- `GET /announcements/:id`
+- `POST /announcements` з валідними та невалідними даними
+- `PATCH /announcements/:id`
+- `DELETE /announcements/:id`
+
+Перед використанням запустіть сервер командою `npm run dev`, імпортуйте `postman_collection.json` у Postman і за потреби змініть змінні `baseUrl`, `existingId` та `missingId`.
+
 ## Структура проекту
 
 ```

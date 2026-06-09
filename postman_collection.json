@@ -1,0 +1,139 @@
+{
+  "info": {
+    "name": "Announcements REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "existingId",
+      "value": "1"
+    },
+    {
+      "key": "missingId",
+      "value": "99999"
+    }
+  ],
+  "item": [
+    {
+      "name": "GET announcements",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/announcements"
+      }
+    },
+    {
+      "name": "GET announcements search",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/announcements?search=laptop"
+      }
+    },
+    {
+      "name": "GET announcements sort and page",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/announcements?sort=oldest&page=1"
+      }
+    },
+    {
+      "name": "GET announcement by existing id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/announcements/{{existingId}}"
+      }
+    },
+    {
+      "name": "GET announcement by missing id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/announcements/{{missingId}}"
+      }
+    },
+    {
+      "name": "POST announcement valid",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Laptop Dell XPS\",\n  \"description\": \"Good condition, 16GB RAM, SSD 512GB\",\n  \"price\": 25000,\n  \"category\": \"sale\",\n  \"contactInfo\": \"0991234567\"\n}"
+        },
+        "url": "{{baseUrl}}/announcements"
+      }
+    },
+    {
+      "name": "POST announcement invalid",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"ab\",\n  \"price\": -100\n}"
+        },
+        "url": "{{baseUrl}}/announcements"
+      }
+    },
+    {
+      "name": "PATCH announcement partial",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 22000\n}"
+        },
+        "url": "{{baseUrl}}/announcements/{{existingId}}"
+      }
+    },
+    {
+      "name": "PATCH announcement missing id",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 100\n}"
+        },
+        "url": "{{baseUrl}}/announcements/{{missingId}}"
+      }
+    },
+    {
+      "name": "DELETE announcement",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/announcements/{{existingId}}"
+      }
+    },
+    {
+      "name": "DELETE announcement missing id",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/announcements/{{missingId}}"
+      }
+    }
+  ]
+}
