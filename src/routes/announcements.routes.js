@@ -13,6 +13,7 @@ import {
   updateAnnouncementValidator,
   deleteAnnouncementValidator,
 } from '../validators/announcements.validator.js'
+import { authenticate } from '../middleware/auth.middleware.js'
 
 const router = Router()
 
@@ -106,7 +107,7 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  *       400:
  *         description: Validation error
  */
-router.post('/', createAnnouncementValidator, createAnnouncement)
+router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
 
 /**
  * @swagger
@@ -139,7 +140,7 @@ router.post('/', createAnnouncementValidator, createAnnouncement)
  *       404:
  *         description: Announcement not found
  */
-router.patch('/:id', updateAnnouncementValidator, updateAnnouncement)
+router.patch('/:id', authenticate, updateAnnouncementValidator, updateAnnouncement)
 
 /**
  * @swagger
@@ -160,7 +161,7 @@ router.patch('/:id', updateAnnouncementValidator, updateAnnouncement)
  *       404:
  *         description: Announcement not found
  */
-router.delete('/:id', deleteAnnouncementValidator, deleteAnnouncement)
+router.delete('/:id', authenticate, deleteAnnouncementValidator, deleteAnnouncement)
 
 /**
  * @swagger
