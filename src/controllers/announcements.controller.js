@@ -1,5 +1,7 @@
 import createHttpError from 'http-errors'
 import prisma from '../../prisma/client.js'
+import logger from '../logger.js'
+import { uploadImage } from '../services/upload.service.js'
 
 const PER_PAGE = 10
 
@@ -43,9 +45,17 @@ export const getAnnouncementById = async (req, res) => {
 }
 
 export const createAnnouncement = async (req, res) => {
-  const announcement = await prisma.announcement.create({
-    data: { ...req.body, userId: req.user.id },
-  })
+  const data = { ...req.body, userId: req.user.id }
+
+  if (req.file) {
+    data.imageUrl = await uploadImage(req.file)
+  }
+
+  const announcement = await prisma.announcement.create({ data })
+  logger.info(
+    { announcementId: announcement.id, userId: req.user.id },
+    'Announcement created',
+  )
   res.status(201).json(announcement)
 }
 
@@ -57,10 +67,13 @@ export const updateAnnouncement = async (req, res) => {
     throw createHttpError(403, 'Access denied')
   }
 
-  const announcement = await prisma.announcement.update({
-    where: { id },
-    data: req.body,
-  })
+  const data = { ...req.body }
+  if (req.file) {
+    data.imageUrl = await uploadImage(req.file)
+  }
+
+  const announcement = await prisma.announcement.update({ where: { id }, data })
+  logger.info({ announcementId: id, userId: req.user.id }, 'Announcement updated')
   res.json(announcement)
 }
 
