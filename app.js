@@ -1,8 +1,10 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import { errors as celebrateErrors } from 'celebrate'
 import announcementsRouter from './src/routes/announcements.routes.js'
+import authRouter from './src/routes/auth.routes.js'
 
 const app = express()
 
@@ -27,9 +29,11 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions)
 
 app.use(express.json())
+app.use(cookieParser())
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
+app.use('/auth', authRouter)
 app.use('/announcements', announcementsRouter)
 
 app.use(celebrateErrors())
@@ -57,6 +61,11 @@ app.use((err, req, res, next) => {
         },
       },
     })
+  }
+
+  // http-errors (createHttpError) — e.g. 401, 409 from auth
+  if (err.status && err.status >= 400 && err.status < 500) {
+    return res.status(err.status).json({ error: err.message })
   }
 
   if (err.code === 'P2025') {
