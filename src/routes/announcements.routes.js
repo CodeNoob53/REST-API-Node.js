@@ -14,6 +14,7 @@ import {
   deleteAnnouncementValidator,
 } from '../validators/announcements.validator.js'
 import { authenticate } from '../middleware/auth.middleware.js'
+import { upload } from '../middleware/upload.middleware.js'
 
 const router = Router()
 
@@ -111,7 +112,13 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  *       401:
  *         description: Authentication required
  */
-router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
+router.post(
+  '/',
+  authenticate,
+  upload.single('image'),
+  createAnnouncementValidator,
+  createAnnouncement,
+)
 
 /**
  * @swagger
@@ -150,7 +157,13 @@ router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
  *       404:
  *         description: Announcement not found
  */
-router.patch('/:id', authenticate, updateAnnouncementValidator, updateAnnouncement)
+router.patch(
+  '/:id',
+  authenticate,
+  upload.single('image'),
+  updateAnnouncementValidator,
+  updateAnnouncement,
+)
 
 /**
  * @swagger
