@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import helmet from 'helmet'
 import pinoHttp from 'pino-http'
+import createHttpError from 'http-errors'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import { errors as celebrateErrors } from 'celebrate'
@@ -46,7 +47,13 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions)
 // CORS must come first so preflight OPTIONS gets the right headers
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no Origin (curl, REST clients, server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+      return callback(createHttpError(403, 'Not allowed by CORS'))
+    },
     credentials: true,
   }),
 )
