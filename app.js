@@ -1,12 +1,18 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
+import helmet from 'helmet'
+import pinoHttp from 'pino-http'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import { errors as celebrateErrors } from 'celebrate'
+import logger from './src/logger.js'
 import announcementsRouter from './src/routes/announcements.routes.js'
 import authRouter from './src/routes/auth.routes.js'
 
 const app = express()
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
 
 // Swagger configuration
 const swaggerOptions = {
@@ -37,6 +43,18 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions)
 
+// CORS must come first so preflight OPTIONS gets the right headers
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+)
+
+app.use(helmet())
+
+app.use(pinoHttp({ logger }))
+
 app.use(express.json())
 app.use(cookieParser())
 
@@ -54,7 +72,7 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err)
+  logger.error(err)
 
   // JSON parsing errors (invalid JSON format)
   if (err.type === 'entity.parse.failed' && err.status === 400) {
@@ -97,8 +115,8 @@ const PORT = process.env.PORT || 3000
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`)
-    console.log(`API docs: http://localhost:${PORT}/api-docs`)
+    logger.info(`Server is running on port ${PORT}`)
+    logger.info(`API docs: http://localhost:${PORT}/api-docs`)
   })
 }
 
