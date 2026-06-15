@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import {
   register,
   login,
@@ -13,6 +14,17 @@ import {
 import { authenticate } from '../middleware/auth.middleware.js'
 
 const router = Router()
+
+// Max 10 requests per IP per 15 minutes on auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+})
+
+router.use(authLimiter)
 
 /**
  * @swagger

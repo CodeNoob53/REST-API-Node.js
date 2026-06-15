@@ -14,6 +14,7 @@ import {
   deleteAnnouncementValidator,
 } from '../validators/announcements.validator.js'
 import { authenticate } from '../middleware/auth.middleware.js'
+import { upload } from '../middleware/upload.middleware.js'
 
 const router = Router()
 
@@ -90,6 +91,7 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  * /announcements:
  *   post:
  *     summary: Create a new announcement (author taken from token)
+ *     description: Send as application/json, or as multipart/form-data to attach an image.
  *     tags: [Announcements]
  *     security:
  *       - BearerAuth: []
@@ -99,6 +101,16 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/AnnouncementInput'
+ *         multipart/form-data:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/AnnouncementInput'
+ *               - type: object
+ *                 properties:
+ *                   image:
+ *                     type: string
+ *                     format: binary
+ *                     description: Optional photo (JPEG, PNG, GIF, WEBP, max 5MB)
  *     responses:
  *       201:
  *         description: Created announcement
@@ -111,13 +123,20 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  *       401:
  *         description: Authentication required
  */
-router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
+router.post(
+  '/',
+  authenticate,
+  upload.single('image'),
+  createAnnouncementValidator,
+  createAnnouncement,
+)
 
 /**
  * @swagger
  * /announcements/{id}:
  *   patch:
  *     summary: Partially update an announcement (owner only)
+ *     description: Send as application/json, or as multipart/form-data to attach a new image.
  *     tags: [Announcements]
  *     security:
  *       - BearerAuth: []
@@ -134,6 +153,16 @@ router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/AnnouncementUpdate'
+ *         multipart/form-data:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/AnnouncementUpdate'
+ *               - type: object
+ *                 properties:
+ *                   image:
+ *                     type: string
+ *                     format: binary
+ *                     description: Optional new photo (JPEG, PNG, GIF, WEBP, max 5MB)
  *     responses:
  *       200:
  *         description: Updated announcement
@@ -150,7 +179,13 @@ router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
  *       404:
  *         description: Announcement not found
  */
-router.patch('/:id', authenticate, updateAnnouncementValidator, updateAnnouncement)
+router.patch(
+  '/:id',
+  authenticate,
+  upload.single('image'),
+  updateAnnouncementValidator,
+  updateAnnouncement,
+)
 
 /**
  * @swagger
@@ -199,6 +234,10 @@ router.delete('/:id', authenticate, deleteAnnouncementValidator, deleteAnnouncem
  *           enum: [sale, service, job, other]
  *         contactInfo:
  *           type: string
+ *         imageUrl:
+ *           type: string
+ *           nullable: true
+ *           description: Cloudinary URL of the photo, or null
  *         userId:
  *           type: integer
  *           description: Author id (set from the access token)
