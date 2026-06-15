@@ -6,3 +6,7 @@ node_modules
 *.db
 *.db-journal
 *.log
+
+# Temporary upload storage — keep the folder, ignore its contents
+uploads/*
+!uploads/.gitkeep
