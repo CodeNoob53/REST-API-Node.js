@@ -233,3 +233,127 @@ Authorization: Bearer {{loginAlice.response.body.accessToken}}
 ### DELETE /announcements/:id — missing id (404)
 DELETE {{baseUrl}}/announcements/99999
 Authorization: Bearer {{loginAlice.response.body.accessToken}}
+
+############################################
+# PHOTO UPLOAD (multipart/form-data)
+############################################
+
+### POST /announcements with photo — multipart upload to Cloudinary (201)
+# Uses sample.png from the project root. price comes as a string but Joi converts it.
+POST {{baseUrl}}/announcements
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="title"
+
+Sell bicycle with photo
+------Boundary
+Content-Disposition: form-data; name="description"
+
+Trek bike in excellent condition
+------Boundary
+Content-Disposition: form-data; name="price"
+
+8500
+------Boundary
+Content-Disposition: form-data; name="category"
+
+sale
+------Boundary
+Content-Disposition: form-data; name="contactInfo"
+
+veloman@gmail.com
+------Boundary
+Content-Disposition: form-data; name="image"; filename="sample.png"
+Content-Type: image/png
+
+< ./sample.png
+------Boundary--
+
+############################################
+# RATE LIMITING — send these >10 times within 15 min to hit 429
+############################################
+
+### Auth rate limit probe #1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #2
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #3
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #4
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #5
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #6
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #7
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #8
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #9
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #10
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #11 — expect 429 Too many requests
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
+
+###
+### #12 — expect 429 Too many requests
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{ "username": "nobody", "password": "x" }
