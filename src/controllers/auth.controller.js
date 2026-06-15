@@ -6,6 +6,7 @@ import {
   issueRefreshToken,
   setRefreshTokenCookie,
 } from '../services/auth.service.js'
+import logger from '../logger.js'
 
 const toPublicUser = (user) => ({
   id: user.id,
@@ -30,6 +31,8 @@ export const register = async (req, res) => {
   const { accessToken, refreshToken } = await issueRefreshToken(user)
   setRefreshTokenCookie(res, refreshToken)
 
+  logger.info({ userId: user.id, username: user.username }, 'User registered')
+
   res.status(201).json({
     user: toPublicUser(user),
     accessToken,
@@ -52,6 +55,8 @@ export const login = async (req, res) => {
 
   const { accessToken, refreshToken } = await issueRefreshToken(user)
   setRefreshTokenCookie(res, refreshToken)
+
+  logger.info({ userId: user.id, username: user.username }, 'User logged in')
 
   res.json({
     user: toPublicUser(user),
