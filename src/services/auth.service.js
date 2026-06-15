@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import prisma from '../../prisma/client.js'
 
@@ -12,9 +13,13 @@ export const generateTokens = (user) => {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   })
 
-  const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
-  })
+  // jti makes each refresh token unique even when issued within the same
+  // second, so rotation always invalidates the previous one.
+  const refreshToken = jwt.sign(
+    { ...payload, jti: crypto.randomUUID() },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
+  )
 
   return { accessToken, refreshToken }
 }
