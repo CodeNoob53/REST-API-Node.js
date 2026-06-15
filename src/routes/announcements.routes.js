@@ -13,6 +13,7 @@ import {
   updateAnnouncementValidator,
   deleteAnnouncementValidator,
 } from '../validators/announcements.validator.js'
+import { authenticate } from '../middleware/auth.middleware.js'
 
 const router = Router()
 
@@ -88,8 +89,10 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  * @swagger
  * /announcements:
  *   post:
- *     summary: Create a new announcement
+ *     summary: Create a new announcement (author taken from token)
  *     tags: [Announcements]
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -105,15 +108,19 @@ router.get('/:id', getByIdValidator, getAnnouncementById)
  *               $ref: '#/components/schemas/Announcement'
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Authentication required
  */
-router.post('/', createAnnouncementValidator, createAnnouncement)
+router.post('/', authenticate, createAnnouncementValidator, createAnnouncement)
 
 /**
  * @swagger
  * /announcements/{id}:
  *   patch:
- *     summary: Partially update an announcement
+ *     summary: Partially update an announcement (owner only)
  *     tags: [Announcements]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -136,17 +143,23 @@ router.post('/', createAnnouncementValidator, createAnnouncement)
  *               $ref: '#/components/schemas/Announcement'
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Access denied (not the owner)
  *       404:
  *         description: Announcement not found
  */
-router.patch('/:id', updateAnnouncementValidator, updateAnnouncement)
+router.patch('/:id', authenticate, updateAnnouncementValidator, updateAnnouncement)
 
 /**
  * @swagger
  * /announcements/{id}:
  *   delete:
- *     summary: Delete an announcement
+ *     summary: Delete an announcement (owner only)
  *     tags: [Announcements]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -157,10 +170,14 @@ router.patch('/:id', updateAnnouncementValidator, updateAnnouncement)
  *     responses:
  *       204:
  *         description: Deleted successfully
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Access denied (not the owner)
  *       404:
  *         description: Announcement not found
  */
-router.delete('/:id', deleteAnnouncementValidator, deleteAnnouncement)
+router.delete('/:id', authenticate, deleteAnnouncementValidator, deleteAnnouncement)
 
 /**
  * @swagger
@@ -182,6 +199,9 @@ router.delete('/:id', deleteAnnouncementValidator, deleteAnnouncement)
  *           enum: [sale, service, job, other]
  *         contactInfo:
  *           type: string
+ *         userId:
+ *           type: integer
+ *           description: Author id (set from the access token)
  *         createdAt:
  *           type: string
  *           format: date-time

@@ -1,47 +1,182 @@
 @baseUrl = http://localhost:3000
 
-### GET /announcements — без параметрів
-GET {{baseUrl}}/announcements
+############################################
+# AUTH
+############################################
 
-###
-
-### GET /announcements — з параметром search
-GET {{baseUrl}}/announcements?search=ноутбук
-
-###
-
-### GET /announcements — з параметрами sort та page
-GET {{baseUrl}}/announcements?sort=oldest&page=1
-
-###
-
-### GET /announcements/:id — існуючий id
-GET {{baseUrl}}/announcements/1
-
-###
-
-### GET /announcements/:id — неіснуючий id
-GET {{baseUrl}}/announcements/99999
-
-###
-
-### POST /announcements — валідні дані
-POST {{baseUrl}}/announcements
+### Register alice (201) — captures tokens
+# @name registerAlice
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "title": "Продам ноутбук Dell XPS",
-  "description": "Відмінний стан, 16GB RAM, SSD 512GB",
-  "price": 25000,
-  "category": "sale",
-  "contactInfo": "0991234567"
+  "username": "alice",
+  "password": "secret123",
+  "name": "Alice"
 }
 
 ###
 
-### POST /announcements — невалідні дані (показує роботу валідації)
+### Register alice again — username taken (409)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "password": "secret123",
+  "name": "Alice"
+}
+
+###
+
+### Register — invalid body (400, validation)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "al",
+  "password": "123",
+  "name": "A"
+}
+
+###
+
+### Login alice (200) — captures tokens
+# @name loginAlice
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "password": "secret123"
+}
+
+###
+
+### Login — wrong password (401 Invalid credentials)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "password": "wrongpass"
+}
+
+###
+
+### Register bob (201) — second user for ownership test
+# @name registerBob
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "bob",
+  "password": "secret123",
+  "name": "Bob"
+}
+
+###
+
+### GET /auth/me — current user (uses alice access token)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
+
+###
+
+### GET /auth/me — without token (401)
+GET {{baseUrl}}/auth/me
+
+###
+
+### POST /auth/refresh — rotate tokens (refresh token from body)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{loginAlice.response.body.refreshToken}}"
+}
+
+###
+
+### POST /auth/refresh — invalid token (401)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "garbage.token.value"
+}
+
+###
+
+### POST /auth/logout — revoke refresh token (200)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
+
+############################################
+# ANNOUNCEMENTS — public
+############################################
+
+### GET /announcements — no params (public)
+GET {{baseUrl}}/announcements
+
+###
+
+### GET /announcements — search by title (public)
+GET {{baseUrl}}/announcements?search=bike
+
+###
+
+### GET /announcements — sort & page (public)
+GET {{baseUrl}}/announcements?sort=oldest&page=1
+
+###
+
+### GET /announcements/:id — existing (public)
+GET {{baseUrl}}/announcements/1
+
+###
+
+### GET /announcements/:id — missing (404)
+GET {{baseUrl}}/announcements/99999
+
+############################################
+# ANNOUNCEMENTS — protected
+############################################
+
+### POST /announcements — WITHOUT token (401)
 POST {{baseUrl}}/announcements
 Content-Type: application/json
+
+{
+  "title": "Sell mountain bike",
+  "description": "Great condition, almost new",
+  "price": 5000,
+  "category": "sale",
+  "contactInfo": "0991112233"
+}
+
+###
+
+### POST /announcements — as alice (201) — captures created id
+# @name createByAlice
+POST {{baseUrl}}/announcements
+Content-Type: application/json
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
+
+{
+  "title": "Sell mountain bike",
+  "description": "Great condition, almost new",
+  "price": 5000,
+  "category": "sale",
+  "contactInfo": "0991112233"
+}
+
+###
+
+### POST /announcements — invalid body as alice (400)
+POST {{baseUrl}}/announcements
+Content-Type: application/json
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
 
 {
   "title": "ab",
@@ -50,19 +185,32 @@ Content-Type: application/json
 
 ###
 
-### PATCH /announcements/:id — часткове оновлення
-PATCH {{baseUrl}}/announcements/1
+### PATCH /announcements/:id — alice updates own (200)
+PATCH {{baseUrl}}/announcements/{{createByAlice.response.body.id}}
 Content-Type: application/json
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
 
 {
-  "price": 22000
+  "price": 4500
 }
 
 ###
 
-### PATCH /announcements/:id — неіснуючий id
+### PATCH /announcements/:id — bob edits alice's (403 Access denied)
+PATCH {{baseUrl}}/announcements/{{createByAlice.response.body.id}}
+Content-Type: application/json
+Authorization: Bearer {{registerBob.response.body.accessToken}}
+
+{
+  "price": 1
+}
+
+###
+
+### PATCH /announcements/:id — missing id (404)
 PATCH {{baseUrl}}/announcements/99999
 Content-Type: application/json
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
 
 {
   "price": 100
@@ -70,10 +218,18 @@ Content-Type: application/json
 
 ###
 
-### DELETE /announcements/:id
-DELETE {{baseUrl}}/announcements/1
+### DELETE /announcements/:id — bob deletes alice's (403 Access denied)
+DELETE {{baseUrl}}/announcements/{{createByAlice.response.body.id}}
+Authorization: Bearer {{registerBob.response.body.accessToken}}
 
 ###
 
-### DELETE /announcements/:id — неіснуючий id
+### DELETE /announcements/:id — alice deletes own (204)
+DELETE {{baseUrl}}/announcements/{{createByAlice.response.body.id}}
+Authorization: Bearer {{loginAlice.response.body.accessToken}}
+
+###
+
+### DELETE /announcements/:id — missing id (404)
 DELETE {{baseUrl}}/announcements/99999
+Authorization: Bearer {{loginAlice.response.body.accessToken}}

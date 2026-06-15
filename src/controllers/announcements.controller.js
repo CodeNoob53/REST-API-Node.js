@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors'
 import prisma from '../../prisma/client.js'
 
 const PER_PAGE = 10
@@ -42,21 +43,35 @@ export const getAnnouncementById = async (req, res) => {
 }
 
 export const createAnnouncement = async (req, res) => {
-  const announcement = await prisma.announcement.create({ data: req.body })
+  const announcement = await prisma.announcement.create({
+    data: { ...req.body, userId: req.user.id },
+  })
   res.status(201).json(announcement)
 }
 
 export const updateAnnouncement = async (req, res) => {
+  const id = Number(req.params.id)
+
+  const existing = await prisma.announcement.findUniqueOrThrow({ where: { id } })
+  if (existing.userId !== req.user.id) {
+    throw createHttpError(403, 'Access denied')
+  }
+
   const announcement = await prisma.announcement.update({
-    where: { id: Number(req.params.id) },
+    where: { id },
     data: req.body,
   })
   res.json(announcement)
 }
 
 export const deleteAnnouncement = async (req, res) => {
-  await prisma.announcement.delete({
-    where: { id: Number(req.params.id) },
-  })
+  const id = Number(req.params.id)
+
+  const existing = await prisma.announcement.findUniqueOrThrow({ where: { id } })
+  if (existing.userId !== req.user.id) {
+    throw createHttpError(403, 'Access denied')
+  }
+
+  await prisma.announcement.delete({ where: { id } })
   res.status(204).end()
 }
